@@ -4,16 +4,30 @@
 //             //
 /////////////////
 
-var memo = {}, arr = ["apple", "lemon", "orange"];
-var ret1 = arr.map(function (curval, index) { // ARRAY_CALLBACK_RETURN_MISSING alarm because no value is returned in the callback function.
-    memo[curval] = index;
-});
-console.log(ret1); // 'ret1' is filled with undefined.
 
-var ret2 = Array.from([1, 2, 3], function (x) { // ARRAY_CALLBACK_RETURN_MISSING alarm because no value is returned in the callback function.
-    x = x + 3;
-});
-console.log(ret2); // 'ret2' is filled with undefined.
+// Application w/ a directly referenced callback
+
+[].map(function (x) { return; });
+Array.prototype.map.apply([], [function (x) { return; }]);
+Array.prototype.map.call([], function (x) { return; });
+
+[].map(x => { return; });
+Array.prototype.map.apply([], [x => { return; }]);
+Array.prototype.map.call([], x => { return; });
+
+
+// Application w/ an indirectly referenced callback
+
+var f0 = function(x) { return; };
+[].map(f0);
+Array.prototype.map.apply([], [f0]);
+Array.prototype.map.call([], f0);
+
+var f1 = x => { return; };
+[].map(f1);
+Array.prototype.map.apply([], [f1]);
+Array.prototype.map.call([], f1);
+
 
 
 
@@ -23,13 +37,26 @@ console.log(ret2); // 'ret2' is filled with undefined.
 //              //
 //////////////////
 
-var memo = {}, arr = ["apple", "lemon", "orange"];
-var ret1 = arr.map(function (curval, index) {
-    memo[curval] = index;
-    return memo[curval];
-});
 
-var ret2 = Array.from([1, 2, 3], function (x) {
-    x = x + 3;
-    return x;
-});
+// Application w/ a directly referenced callback
+
+[].map(function (x) { return 1; });
+Array.prototype.map.apply([], [function (x) { return 1; }]);
+Array.prototype.map.call([], function (x) { return 1; });
+
+[].map(x => 1);
+Array.prototype.map.apply([], [x => 1]);
+Array.prototype.map.call([], x => 1);
+
+
+// Application w/ an indirectly referenced callback
+
+var f2 = function(x) { return 1; };
+[].map(f2);
+Array.prototype.map.apply([], [f2]);
+Array.prototype.map.call([], f2);
+
+var f3 = x => 1;
+[].map(f3);
+Array.prototype.map.apply([], [f3]);
+Array.prototype.map.call([], f3);

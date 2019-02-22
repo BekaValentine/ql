@@ -1,2 +1,12 @@
-| test.js:8:12:10:2 | arr.map ... dex;\\n}) | map | test.js:8:20:10:1 | functio ... ndex;\\n} | test.js:8:20:10:1 | functio ... ndex;\\n} |
-| test.js:13:12:15:2 | Array.f ... + 3;\\n}) | from | test.js:13:34:15:1 | functio ...  + 3;\\n} | test.js:13:34:15:1 | functio ...  + 3;\\n} |
+| test.js:10:1:10:32 | [].map( ... urn; }) | map | test.js:10:8:10:31 | functio ... turn; } | test.js:10:8:10:31 | functio ... turn; } |
+| test.js:11:1:11:57 | Array.p ... rn; }]) | map | test.js:11:32:11:55 | functio ... turn; } | test.js:11:32:11:55 | functio ... turn; } |
+| test.js:12:1:12:54 | Array.p ... urn; }) | map | test.js:12:30:12:53 | functio ... turn; } | test.js:12:30:12:53 | functio ... turn; } |
+| test.js:14:1:14:24 | [].map( ... urn; }) | map | test.js:14:8:14:23 | x => { return; } | test.js:14:8:14:23 | x => { return; } |
+| test.js:15:1:15:49 | Array.p ... rn; }]) | map | test.js:15:32:15:47 | x => { return; } | test.js:15:32:15:47 | x => { return; } |
+| test.js:16:1:16:46 | Array.p ... urn; }) | map | test.js:16:30:16:45 | x => { return; } | test.js:16:30:16:45 | x => { return; } |
+| test.js:22:1:22:10 | [].map(f0) | map | test.js:22:8:22:9 | f0 | test.js:21:10:21:32 | functio ... turn; } |
+| test.js:23:1:23:35 | Array.p ... , [f0]) | map | test.js:23:32:23:33 | f0 | test.js:21:10:21:32 | functio ... turn; } |
+| test.js:24:1:24:32 | Array.p ... [], f0) | map | test.js:24:30:24:31 | f0 | test.js:21:10:21:32 | functio ... turn; } |
+| test.js:27:1:27:10 | [].map(f1) | map | test.js:27:8:27:9 | f1 | test.js:26:10:26:25 | x => { return; } |
+| test.js:28:1:28:35 | Array.p ... , [f1]) | map | test.js:28:32:28:33 | f1 | test.js:26:10:26:25 | x => { return; } |
+| test.js:29:1:29:32 | Array.p ... [], f1) | map | test.js:29:30:29:31 | f1 | test.js:26:10:26:25 | x => { return; } |
