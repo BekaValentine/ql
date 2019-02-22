@@ -1,0 +1,2 @@
+| test.js:8:12:10:2 | arr.map ... dex;\\n}) | map | test.js:8:20:10:1 | functio ... ndex;\\n} |
+| test.js:13:12:15:2 | Array.f ... + 3;\\n}) | from | test.js:13:34:15:1 | functio ...  + 3;\\n} |
