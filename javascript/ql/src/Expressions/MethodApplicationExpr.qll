@@ -36,9 +36,9 @@ class DirectMethodApplicationExpr extends MethodApplicationExpr {
 }
 
 class DirectCallbackMethodApplicationExpr extends DirectMethodApplicationExpr, CallbackCallExpr {
-  DirectCallbackMethodApplicationExpr() { this.getArgument(0) instanceof Function }
+  DirectCallbackMethodApplicationExpr() { this.getAnArgument() instanceof Function }
 
-  override Function getCallback() { result = this.getArgument(0).(Function) }
+  override Function getCallback() { result = this.getAnArgument().(Function) }
 }
 
 /*
@@ -58,14 +58,14 @@ class CallbackApplyMethodApplicationExpr extends ApplyMethodApplicationExpr, Cal
   CallbackApplyMethodApplicationExpr() {
     exists(ArrayExpr args, Function cb |
       args = this.getArgument(1) and
-      cb = args.getElement(0)
+      cb = args.getAnElement()
     )
   }
 
   override Function getCallback() {
     exists(ArrayExpr args, Function cb |
       args = this.getArgument(1) and
-      cb = args.getElement(0) and
+      cb = args.getAnElement() and
       result = cb
     )
   }
@@ -85,11 +85,11 @@ class CallMethodApplicationExpr extends MethodApplicationExpr {
 }
 
 class CallbackCallMethodApplicationExpr extends CallMethodApplicationExpr, CallbackCallExpr {
-  CallbackCallMethodApplicationExpr() { exists(Function cb | cb = this.getArgument(1)) }
+  CallbackCallMethodApplicationExpr() { exists(Function cb | cb = this.getAnArgument()) }
 
   override Function getCallback() {
     exists(Function cb |
-      cb = this.getArgument(1) and
+      cb = this.getAnArgument() and
       result = cb
     )
   }
