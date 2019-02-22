@@ -1,13 +1,21 @@
 import javascript
 
 /*
- * A `CallbackCallExpr` is some `CallExpr` which takes a function as an argument,
- * i.e. which has a callback arg. It's useful to have such a class so that we can
- * easily refer to the callback as such.
+ * A `FunctionRef` is an abstraction over functions to capture both function literals
+ * as well as variables which refer to functions. Ideally, it should cover all
+ * expressions which denote or evaluate to functions.
  */
 
-abstract class CallbackCallExpr extends CallExpr {
-  abstract Function getCallback();
+class FunctionRef extends Expr {
+  Function referent;
+
+  FunctionRef() {
+    this instanceof Function and referent = this
+    or
+    exists(VarUse vu, Function f | this = vu | vu.getADef().getSource() = f and referent = f)
+  }
+
+  Function getReferent() { result = referent }
 }
 
 /*
@@ -18,7 +26,11 @@ abstract class CallbackCallExpr extends CallExpr {
  */
 
 abstract class MethodApplicationExpr extends MethodCallExpr {
+  Expr argument;
+
   abstract string getApplicationMethodName();
+
+  Expr getAnApplicationArgument() { result = argument }
 }
 
 /*
@@ -29,16 +41,11 @@ abstract class MethodApplicationExpr extends MethodCallExpr {
 class DirectMethodApplicationExpr extends MethodApplicationExpr {
   DirectMethodApplicationExpr() {
     this.getMethodName() != "apply" and
-    this.getMethodName() != "call"
+    this.getMethodName() != "call" and
+    argument = this.getAnArgument()
   }
 
   override string getApplicationMethodName() { result = this.getMethodName() }
-}
-
-class DirectCallbackMethodApplicationExpr extends DirectMethodApplicationExpr, CallbackCallExpr {
-  DirectCallbackMethodApplicationExpr() { this.getAnArgument() instanceof Function }
-
-  override Function getCallback() { result = this.getAnArgument().(Function) }
 }
 
 /*
@@ -47,27 +54,13 @@ class DirectCallbackMethodApplicationExpr extends DirectMethodApplicationExpr, C
  */
 
 class ApplyMethodApplicationExpr extends MethodApplicationExpr {
-  ApplyMethodApplicationExpr() { this.getMethodName() = "apply" }
+  ApplyMethodApplicationExpr() {
+    this.getMethodName() = "apply" and
+    argument = this.getArgument(1).(ArrayExpr).getAnElement()
+  }
 
   override string getApplicationMethodName() {
     exists(DotExpr de | de = this.getReceiver() | result = de.getPropertyName())
-  }
-}
-
-class CallbackApplyMethodApplicationExpr extends ApplyMethodApplicationExpr, CallbackCallExpr {
-  CallbackApplyMethodApplicationExpr() {
-    exists(ArrayExpr args, Function cb |
-      args = this.getArgument(1) and
-      cb = args.getAnElement()
-    )
-  }
-
-  override Function getCallback() {
-    exists(ArrayExpr args, Function cb |
-      args = this.getArgument(1) and
-      cb = args.getAnElement() and
-      result = cb
-    )
   }
 }
 
@@ -77,23 +70,21 @@ class CallbackApplyMethodApplicationExpr extends ApplyMethodApplicationExpr, Cal
  */
 
 class CallMethodApplicationExpr extends MethodApplicationExpr {
-  CallMethodApplicationExpr() { this.getMethodName() = "call" }
+  CallMethodApplicationExpr() {
+    this.getMethodName() = "call" and
+    exists(int i | i > 0 | argument = this.getArgument(i))
+  }
 
   override string getApplicationMethodName() {
     exists(DotExpr de | de = this.getReceiver() | result = de.getPropertyName())
   }
 }
 
-class CallbackCallMethodApplicationExpr extends CallMethodApplicationExpr, CallbackCallExpr {
-  CallbackCallMethodApplicationExpr() { exists(Function cb | cb = this.getAnArgument()) }
-
-  override Function getCallback() {
-    exists(Function cb |
-      cb = this.getAnArgument() and
-      result = cb
-    )
-  }
-}
+/*
+ * An array calback method name is just the name of those array methods which take
+ * callbacks that return values (as opposed to ones that don'e return values, i.e.
+ * `forEach`).
+ */
 
 predicate isArrayCallbackMethodName(string n) {
   n = "from" or

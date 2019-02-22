@@ -2,8 +2,9 @@ import javascript
 import MethodApplicationExpr
 
 
-from MethodApplicationExpr fa, CallbackCallExpr cb
-where fa = cb
+from MethodApplicationExpr fa, FunctionRef gref
+where any()
   and isArrayCallbackMethodName(fa.getApplicationMethodName())
-  and not exists(cb.getCallback().getAReturnedExpr())
-select fa, fa.getApplicationMethodName(), cb.getCallback()
+  and fa.getAnApplicationArgument() = gref
+  and not exists(gref.getReferent().getAReturnedExpr())
+select fa, fa.getApplicationMethodName(), gref, gref.getReferent()

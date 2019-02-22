@@ -1,6 +1,6 @@
-| test.js:8:5:12:6 | a.forEa ... \\n    }) | test.js:10:20:10:25 | e.data |
-| test.js:17:2:21:4 | a.forEa ... \\t}\\n\\t}]) | test.js:19:11:19:16 | e.data |
-| test.js:26:2:30:3 | a.forEa ... \\t\\t}\\n\\t}) | test.js:28:11:28:16 | e.data |
-| test.js:35:5:39:6 | a.forEa ... \\n    }) | test.js:37:20:37:25 | e.data |
-| test.js:44:2:48:4 | a.forEa ... \\t}\\n\\t}]) | test.js:46:11:46:16 | e.data |
-| test.js:53:2:57:3 | a.forEa ... \\t\\t}\\n\\t}) | test.js:55:11:55:16 | e.data |
+| test.js:8:5:12:6 | a.forEa ... \\n    }) | test.js:8:15:12:5 | e => {\\n ... }\\n    } | test.js:8:15:12:5 | e => {\\n ... }\\n    } | test.js:10:20:10:25 | e.data |
+| test.js:17:2:21:4 | a.forEa ... \\t}\\n\\t}]) | test.js:17:22:21:2 | e => {\\n ... \\n\\t\\t}\\n\\t} | test.js:17:22:21:2 | e => {\\n ... \\n\\t\\t}\\n\\t} | test.js:19:11:19:16 | e.data |
+| test.js:26:2:30:3 | a.forEa ... \\t\\t}\\n\\t}) | test.js:26:20:30:2 | e => {\\n ... \\n\\t\\t}\\n\\t} | test.js:26:20:30:2 | e => {\\n ... \\n\\t\\t}\\n\\t} | test.js:28:11:28:16 | e.data |
+| test.js:35:5:39:6 | a.forEa ... \\n    }) | test.js:35:15:39:5 | functio ... }\\n    } | test.js:35:15:39:5 | functio ... }\\n    } | test.js:37:20:37:25 | e.data |
+| test.js:44:2:48:4 | a.forEa ... \\t}\\n\\t}]) | test.js:44:22:48:2 | functio ... \\n\\t\\t}\\n\\t} | test.js:44:22:48:2 | functio ... \\n\\t\\t}\\n\\t} | test.js:46:11:46:16 | e.data |
+| test.js:53:2:57:3 | a.forEa ... \\t\\t}\\n\\t}) | test.js:53:20:57:2 | functio ... \\n\\t\\t}\\n\\t} | test.js:53:20:57:2 | functio ... \\n\\t\\t}\\n\\t} | test.js:55:11:55:16 | e.data |

@@ -2,8 +2,9 @@ import javascript
 import MethodApplicationExpr
 
 
-from MethodApplicationExpr fa, CallbackCallExpr cb
-where
-  fa.getApplicationMethodName() = "forEach" and
-  fa = cb
-select fa, cb.getCallback().getAReturnedExpr()
+from MethodApplicationExpr fa, FunctionRef gref, Expr ret
+where any()
+  and fa.getApplicationMethodName() = "forEach"
+  and fa.getAnApplicationArgument() = gref
+  and gref.getReferent().getAReturnedExpr() = ret
+select fa, gref, gref.getReferent(), ret
