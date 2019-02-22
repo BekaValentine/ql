@@ -1,3 +1,9 @@
+/*
+ * This query finds cases of calls to array methods which take callbacks that ought to
+ * return a value, such as `map` or `filter`, but which are supplied with callbacks that
+ * can possible return nothing at all.
+ */
+
 import javascript
 import MethodApplicationExpr
 

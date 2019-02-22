@@ -1,3 +1,9 @@
+/*
+ * This query finds cases of calls to the array method `forEach`, which take callbacks
+ * that ought to never return a value, but which are supplied with a callbacks that
+ * can possibly return something.
+ */
+
 import javascript
 import MethodApplicationExpr
 

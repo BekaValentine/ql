@@ -1,3 +1,12 @@
+/*
+ * This library provides tools for referencing functions in various ways related more
+ * to the logcal concept of a function rather than the syntactic one. For example,
+ * variables which are bound to functions ought to behave the same as the function
+ * itself, so it would be useful to have a mechanism by which one can describe all
+ * expressions which refer to a function, whether its function literals or variables
+ * bound to functions, as if they're the same thing.
+ */
+
 import javascript
 
 /*
@@ -15,6 +24,10 @@ class FunctionRef extends Expr {
     exists(VarUse vu, Function f | this = vu | vu.getADef().getSource() = f and referent = f)
   }
 
+  /*
+   * The reference of a function reference is just that function expression which the
+   * reference evaluates to, as found by the characteristic predicate.
+   */
   Function getReferent() { result = referent }
 }
 
@@ -28,8 +41,20 @@ class FunctionRef extends Expr {
 abstract class MethodApplicationExpr extends MethodCallExpr {
   Expr argument;
 
+  /*
+   * The application method name is just the name of the method being applied, once we
+   * look at it through this lens of abstraction. So for example, in `foo.bar()`,
+   * `C.prototype.bar.apply(foo, [])`, and `C.prototype.bar.call(foo)`, the application
+   * method name is `bar`.
+   */
   abstract string getApplicationMethodName();
-
+  
+  /*
+   * The application arguments are just the arguments of the method, once we look at
+   * them through this lens of abstraction. So for example, in `foo.bar(x,y,z)`,
+   * `C.prototype.bar.apply(foo, [x,y,z])`, and `C.prototype.bar.call(foo, x, y, z)`,
+   * the application arguments are `x`, `y`, and `z`.
+   */
   Expr getAnApplicationArgument() { result = argument }
 }
 
