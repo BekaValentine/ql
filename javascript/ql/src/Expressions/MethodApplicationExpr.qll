@@ -1,6 +1,6 @@
 /*
  * This library provides tools for referencing functions in various ways related more
- * to the logcal concept of a function rather than the syntactic one. For example,
+ * to the logical concept of a function rather than the syntactic one. For example,
  * variables which are bound to functions ought to behave the same as the function
  * itself, so it would be useful to have a mechanism by which one can describe all
  * expressions which refer to a function, whether its function literals or variables
