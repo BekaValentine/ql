@@ -8,6 +8,26 @@
  */
 
 import javascript
+import semmle.javascript.CFG
+
+/*
+ * A function can return nothing if it's a function expression with an empty return, or
+ * a non-return final expression, or alternatively if its an arrow function with an empty
+ * return.
+ */
+
+predicate canReturnNothing(Function f) {
+  f instanceof FunctionExpr and
+  exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
+    not final instanceof ReturnStmt or
+    not exists(final.(ReturnStmt).getExpr())
+  )
+  or
+  f instanceof ArrowFunctionExpr and
+  exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
+    final instanceof ReturnStmt and not exists(final.(ReturnStmt).getExpr())
+  )
+}
 
 /*
  * A `FunctionRef` is an abstraction over functions to capture both function literals
