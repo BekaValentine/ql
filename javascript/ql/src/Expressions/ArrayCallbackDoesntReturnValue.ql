@@ -11,5 +11,7 @@ from MethodApplicationExpr fa, FunctionRef gref
 where
   isArrayCallbackMethodName(fa.getApplicationMethodName()) and
   fa.getAnApplicationArgument() = gref and
-  not exists(gref.getReferent().getAReturnedExpr())
+  exists(ReturnStmt retstmt | retstmt = gref.getReferent().getAReturnStmt() |
+    not exists(retstmt.getExpr())
+  )
 select fa, fa.getApplicationMethodName(), gref, gref.getReferent()
