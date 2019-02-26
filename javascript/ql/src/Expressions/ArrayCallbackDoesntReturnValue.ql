@@ -17,13 +17,15 @@ from
      MethodApplicationExpr application
    , ReferringExpr callbackRef
    , Function callback
+   , ConcreteControlFlowNode returnOfNothing
 where
       isArrayCallbackMethodName(application.getApplicationMethodName())
   and application.getAnApplicationArgument() = callbackRef
   and callbackRef.getReferent() = callback
-  and canReturnNothing(callback)
+  and returnOfNothing = getAReturnOfNothing(callback)
 select
        application
      , application.getApplicationMethodName()
      , callbackRef
      , callback
+     , returnOfNothing

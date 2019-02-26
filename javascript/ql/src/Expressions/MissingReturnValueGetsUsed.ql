@@ -56,13 +56,15 @@ from
      CallExpr call
    , ReferringExpr calleeRef
    , Function callee
+   , ConcreteControlFlowNode returnOfNothing
 where
       call.getCallee() = calleeRef
   and calleeRef.getReferent() = callee
-  and canReturnNothing(callee)
+  and getAReturnOfNothing(callee) = returnOfNothing
   and not isValidCallOfNoReturnFunction(call, callee)
 select
        call
      , calleeRef
      , callee
      , callee.getBody()
+     , returnOfNothing

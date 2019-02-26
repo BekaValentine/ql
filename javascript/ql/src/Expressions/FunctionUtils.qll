@@ -10,21 +10,26 @@
 import javascript
 import semmle.javascript.CFG
 
+ConcreteControlFlowNode getAReturnOfNothing(Function f) {
+  exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
+    (
+      final instanceof ReturnStmt and not exists(final.(ReturnStmt).getExpr())
+      or
+      final instanceof Expr and not final = f.getAReturnedExpr()
+      or
+      not final instanceof ReturnStmt and not final instanceof Expr
+    ) and
+    result = final
+  )
+}
+
 /*
  * A function can return nothing if it's a function expression with an empty return, or
  * a non-return final expression, or alternatively if its an arrow function with an empty
  * return.
  */
 
-predicate canReturnNothing(Function f) {
-  exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
-    final instanceof ReturnStmt and not exists(final.(ReturnStmt).getExpr())
-    or
-    final instanceof Expr and not final = f.getAReturnedExpr()
-    or
-    not final instanceof ReturnStmt and not final instanceof Expr
-  )
-}
+predicate canReturnNothing(Function f) { exists(getAReturnOfNothing(f)) }
 
 /*
  * A `MethodApplicationExpr` is a minor abstraction over method calls which we use
