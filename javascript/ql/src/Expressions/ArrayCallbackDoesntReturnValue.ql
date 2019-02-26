@@ -5,11 +5,13 @@
  */
 
 import javascript
-import MethodApplicationExpr
+import FunctionUtils
+import ReferringExpr
 
-from MethodApplicationExpr fa, FunctionRef gref
+from MethodApplicationExpr fa, ReferringExpr gref, Function f
 where
   isArrayCallbackMethodName(fa.getApplicationMethodName()) and
   fa.getAnApplicationArgument() = gref and
-  canReturnNothing(gref.getReferent())
-select fa, fa.getApplicationMethodName(), gref, gref.getReferent()
+  gref.getReferent() = f and
+  canReturnNothing(f)
+select fa, fa.getApplicationMethodName(), gref, f

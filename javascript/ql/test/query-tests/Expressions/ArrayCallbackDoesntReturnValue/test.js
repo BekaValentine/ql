@@ -1,3 +1,6 @@
+function main() {
+
+
 /////////////////
 //             //
 //  BAD CASES  //
@@ -60,3 +63,6 @@ var f3 = x => 1;
 [].map(f3);
 Array.prototype.map.apply([], [f3]);
 Array.prototype.map.call([], f3);
+
+
+}

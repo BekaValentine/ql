@@ -1,3 +1,6 @@
+function main() {
+	
+	
 /////////////////
 //             //
 //  BAD CASES  //
@@ -59,3 +62,6 @@ var f3 = x => { return; };
 [].forEach(f3);
 Array.prototype.forEach.apply([], [f3]);
 Array.prototype.forEach.call([], f3);
+
+
+}

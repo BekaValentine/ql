@@ -17,38 +17,13 @@ import semmle.javascript.CFG
  */
 
 predicate canReturnNothing(Function f) {
-  f instanceof FunctionExpr and
-  exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
-    not final instanceof ReturnStmt or
-    not exists(final.(ReturnStmt).getExpr())
-  )
-  or
-  f instanceof ArrowFunctionExpr and
   exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
     final instanceof ReturnStmt and not exists(final.(ReturnStmt).getExpr())
-  )
-}
-
-/*
- * A `FunctionRef` is an abstraction over functions to capture both function literals
- * as well as variables which refer to functions. Ideally, it should cover all
- * expressions which denote or evaluate to functions.
- */
-
-class FunctionRef extends Expr {
-  Function referent;
-
-  FunctionRef() {
-    this instanceof Function and referent = this
     or
-    exists(VarUse vu, Function f | this = vu | vu.getADef().getSource() = f and referent = f)
-  }
-
-  /*
-   * The reference of a function reference is just that function expression which the
-   * reference evaluates to, as found by the characteristic predicate.
-   */
-  Function getReferent() { result = referent }
+    final instanceof Expr and not final = f.getAReturnedExpr()
+    or
+    not final instanceof ReturnStmt and not final instanceof Expr
+  )
 }
 
 /*
@@ -67,14 +42,16 @@ abstract class MethodApplicationExpr extends MethodCallExpr {
    * `C.prototype.bar.apply(foo, [])`, and `C.prototype.bar.call(foo)`, the application
    * method name is `bar`.
    */
+
   abstract string getApplicationMethodName();
-  
+
   /*
    * The application arguments are just the arguments of the method, once we look at
    * them through this lens of abstraction. So for example, in `foo.bar(x,y,z)`,
    * `C.prototype.bar.apply(foo, [x,y,z])`, and `C.prototype.bar.call(foo, x, y, z)`,
    * the application arguments are `x`, `y`, and `z`.
    */
+
   Expr getAnApplicationArgument() { result = argument }
 }
 
@@ -126,7 +103,7 @@ class CallMethodApplicationExpr extends MethodApplicationExpr {
 }
 
 /*
- * An array calback method name is just the name of those array methods which take
+ * An array callback method name is just the name of those array methods which take
  * callbacks that return values (as opposed to ones that don'e return values, i.e.
  * `forEach`).
  */

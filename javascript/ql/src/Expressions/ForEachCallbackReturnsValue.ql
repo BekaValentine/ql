@@ -5,11 +5,13 @@
  */
 
 import javascript
-import MethodApplicationExpr
+import FunctionUtils
+import ReferringExpr
 
-from MethodApplicationExpr fa, FunctionRef gref, Expr ret
+from MethodApplicationExpr fa, ReferringExpr gref, Function g, Expr ret
 where
   fa.getApplicationMethodName() = "forEach" and
   fa.getAnApplicationArgument() = gref and
-  gref.getReferent().getAReturnedExpr() = ret
-select fa, gref, gref.getReferent(), ret
+  gref.getReferent() = g and
+  g.getAReturnedExpr() = ret
+select fa, gref, g, ret
