@@ -1,0 +1,92 @@
+<!DOCTYPE qhelp PUBLIC
+  "-//Semmle//qhelp//EN"
+  "qhelp.dtd">
+
+<qhelp>
+	
+	<overview>
+		<p>
+			Functions need not return values, but calls to them should then not be used as if
+			the function does indeed return a value. Using such functions in this way indicates
+			either that the function was intended to return a value, or that the assignment was
+			unintended.
+		</p>
+		
+		<p>The contexts in which such a call is acceptable are:</p>
+		
+		<ul>
+			<li>As a statement, b/c the function is used for its side effects only</li>
+			<li>When the function is completely empty and has no statements in it</li>
+			<li>When the function is in an error function</li>
+ 			<li>In an immediately invoked function expression (IIFE)</li>
+ 			<li>When the application is immediately returned</li>
+			<li>When the application is in a void expression</li>
+		</ul>
+	</overview>
+	
+	<recommendation>
+		<p>
+			Either ensure that the function in question returns a value, or remove the offending
+			use context.
+		</p>
+	</recommendation>
+	
+	<example>
+		<p>
+			In the following code, array elements in <code>arr</code> are logged to the console
+			one at a time.
+		</p>
+		
+		<sample language="javascript">
+			function logAll(callback) {
+				arr.forEach(console.log);
+			}
+			
+			var result = logAll(arr);
+		</sample>
+		
+		<p>
+			This assignment is extraneous, because nothing is returned from the function
+			<code>logAll</code>. Instead, it can be omitted entirely:
+		</p>
+		
+		<sample language="javascript">
+			logAll(arr);
+		</sample>
+	</example>
+	
+	<example>
+		<p>
+			Another common thing that happens is that a return statement is intended, but
+			omitted unintentionally. For example, when one thinks in terms of arrow expressions,
+			but writes function expressions:
+		</p>
+		
+		<sample language="javascript">
+			var square = function (arg) { arg * arg };
+			var result = square(square(5));
+		</sample>
+		
+		<p>
+			In cases like this, adding an explicit return suffices:
+		</p>
+		
+		<sample language="javascript">
+			var square = function (arg) { return arg * arg; };
+			var result = square(square(5));
+		</sample>
+		
+		<p>
+			As does swapping the function expression for an arrow expression:
+		</p>
+		
+		<sample language="javascript">
+			var square = arg => arg * arg;
+			var result = square(square(5));
+		</sample>
+	</example>
+	
+	<references>
+		<li>DeepScan: <a href="https://deepscan.io/docs/rules/missing-return-value">MISSING_RETURN_VALUE</a></li>
+	</references>
+</qhelp>
