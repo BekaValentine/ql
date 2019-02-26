@@ -14,9 +14,10 @@
 		
 		<p>
 			Use of such a callback is an indication that the programmer may have meant to use
-			some other function, such as <code>map</code>, which makes use of the returned value
-			Where side effects are concerned, <code>forEach</code> and <code>map</code> are
-			identical, so such confusion is understandable. 
+			some other method, such as <code>map</code>, which makes use of the returned value,
+			or use some other language construction. Where side effects are concerned,
+			<code>forEach</code> and <code>map</code> are identical, so such confusion is
+			understandable. 
 		</p>
 	</overview>
 	
