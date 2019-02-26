@@ -46,11 +46,17 @@ predicate isInReturnExpr(Expr call) { call.getParent() instanceof ReturnStmt }
 
 predicate isInVoidExpr(Expr call) { call.getParent() instanceof VoidExpr }
 
-from CallExpr call, ReferringExpr ref, Function f
+from
+     CallExpr call
+   , ReferringExpr calleeRef
+   , Function callee
 where
-  any() and
-  call.getCallee() = ref and
-  ref.getReferent() = f and
-  canReturnNothing(f) and
-  not isValidCallOfNoReturnFunction(call, f)
-select call, ref, f, f.getBody(), f.getNumBodyStmt()
+      call.getCallee() = calleeRef
+  and calleeRef.getReferent() = callee
+  and canReturnNothing(callee)
+  and not isValidCallOfNoReturnFunction(call, callee)
+select
+       call
+     , calleeRef
+     , callee
+     , callee.getBody()

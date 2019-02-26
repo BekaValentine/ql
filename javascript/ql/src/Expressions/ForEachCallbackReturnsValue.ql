@@ -8,10 +8,18 @@ import javascript
 import FunctionUtils
 import ReferringExpr
 
-from MethodApplicationExpr fa, ReferringExpr gref, Function g, Expr ret
+from
+     MethodApplicationExpr application
+   , ReferringExpr callbackRef
+   , Function callback
+   , Expr returnVal
 where
-  fa.getApplicationMethodName() = "forEach" and
-  fa.getAnApplicationArgument() = gref and
-  gref.getReferent() = g and
-  g.getAReturnedExpr() = ret
-select fa, gref, g, ret
+      application.getApplicationMethodName() = "forEach"
+  and application.getAnApplicationArgument() = callbackRef
+  and callbackRef.getReferent() = callback
+  and callback.getAReturnedExpr() = returnVal
+select
+       application
+     , callbackRef
+     , callback
+     , returnVal

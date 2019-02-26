@@ -1,5 +1,7 @@
 import javascript
 import ReferringExpr
 
-from ReferringExpr ref
-select ref
+from
+     ReferringExpr ref
+select
+       ref

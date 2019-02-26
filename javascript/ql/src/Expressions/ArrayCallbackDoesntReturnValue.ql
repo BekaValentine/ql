@@ -8,10 +8,17 @@ import javascript
 import FunctionUtils
 import ReferringExpr
 
-from MethodApplicationExpr fa, ReferringExpr gref, Function f
+from
+     MethodApplicationExpr application
+   , ReferringExpr callbackRef
+   , Function callback
 where
-  isArrayCallbackMethodName(fa.getApplicationMethodName()) and
-  fa.getAnApplicationArgument() = gref and
-  gref.getReferent() = f and
-  canReturnNothing(f)
-select fa, fa.getApplicationMethodName(), gref, f
+      isArrayCallbackMethodName(application.getApplicationMethodName())
+  and application.getAnApplicationArgument() = callbackRef
+  and callbackRef.getReferent() = callback
+  and canReturnNothing(callback)
+select
+       application
+     , application.getApplicationMethodName()
+     , callbackRef
+     , callback
