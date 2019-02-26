@@ -1,3 +1,8 @@
+/*
+ * This query finds cases where a function doesn't necessarily return a value, but is called in
+ * a context where its expect to do so, such as an assignment or an addition expression.
+ */
+
 import javascript
 import FunctionUtils
 import ReferringExpr
