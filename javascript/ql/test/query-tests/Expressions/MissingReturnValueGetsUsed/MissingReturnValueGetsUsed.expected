@@ -1,0 +1,5 @@
+| test.js:14:10:14:13 | f0() | test.js:14:10:14:11 | f0 | test.js:11:1:13:1 | functio ... turn;\\n} | test.js:11:15:13:1 | {\\n\\treturn;\\n} | 1 |
+| test.js:20:10:20:13 | f1() | test.js:20:10:20:11 | f1 | test.js:17:1:19:1 | functio ... {\\n\\t1;\\n} | test.js:17:15:19:1 | {\\n\\t1;\\n} | 1 |
+| test.js:26:10:26:13 | f2() | test.js:26:10:26:11 | f2 | test.js:23:10:25:1 | functio ... turn;\\n} | test.js:23:22:25:1 | {\\n\\treturn;\\n} | 1 |
+| test.js:32:10:32:13 | f3() | test.js:32:10:32:11 | f3 | test.js:29:10:31:1 | function () {\\n\\t1;\\n} | test.js:29:22:31:1 | {\\n\\t1;\\n} | 1 |
+| test.js:36:10:36:13 | f4() | test.js:36:10:36:11 | f4 | test.js:35:10:35:26 | () => { return; } | test.js:35:16:35:26 | { return; } | 1 |
