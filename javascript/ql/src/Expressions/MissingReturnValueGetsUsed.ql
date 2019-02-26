@@ -1,6 +1,12 @@
 /*
- * This query finds cases where a function doesn't necessarily return a value, but is called in
- * a context where its expect to do so, such as an assignment or an addition expression.
+ * @name Missing Return Value Gets Used
+ * @description A call to a function that doesn't return a value is used in a context where the
+ *              value of the call actually matters.
+ * @kind problem
+ * @problem.severity warning
+ * @id js/missing-return-value-gets-used
+ * @precision very-high
+ * @tag correctness
  */
 
 import javascript

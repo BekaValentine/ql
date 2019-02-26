@@ -1,7 +1,12 @@
 /*
- * This query finds cases of calls to the array method `forEach`, which take callbacks
- * that ought to never return a value, but which are supplied with a callbacks that
- * can possibly return something.
+ * @name ForEach Callback Returns Value
+ * @description The `forEach` method's callback should not return a value because `forEach`
+ *              discards them.
+ * @kind problem
+ * @problem.severity warning
+ * @id js/foreach-callback-returns-value
+ * @precision very-high
+ * @tag correctness
  */
 
 import javascript

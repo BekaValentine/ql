@@ -1,7 +1,12 @@
 /*
- * This query finds cases of calls to array methods which take callbacks that ought to
- * return a value, such as `map` or `filter`, but which are supplied with callbacks that
- * can possible return nothing at all.
+ * @name Array Callback Doesn't Return Value
+ * @description Array callbacks like `map` and `filter` expect a value to be returned, so code
+ *              should never omit a return value in any execution path.
+ * @kind problem
+ * @problem.severity warning
+ * @id js/array-callback-doesnt-return-value
+ * @precision very-high
+ * @tag correctness
  */
 
 import javascript
