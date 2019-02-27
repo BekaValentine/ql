@@ -19,7 +19,8 @@ from
    , Function callback
    , Expr returnVal
 where
-      application.getApplicationMethodName() = "forEach"
+      not application.getTopLevel().isMinified()
+  and application.getApplicationMethodName() = "forEach"
   and application.getAnApplicationArgument() = callbackRef
   and callbackRef.getReferent() = callback
   and callback.getAReturnedExpr() = returnVal

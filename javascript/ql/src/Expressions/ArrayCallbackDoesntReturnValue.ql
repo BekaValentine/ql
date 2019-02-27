@@ -19,7 +19,8 @@ from
    , Function callback
    , ConcreteControlFlowNode returnOfNothing
 where
-      isArrayCallbackMethodName(application.getApplicationMethodName())
+      not application.getTopLevel().isMinified()
+  and isArrayCallbackMethodName(application.getApplicationMethodName())
   and application.getAnApplicationArgument() = callbackRef
   and callbackRef.getReferent() = callback
   and returnOfNothing = getAReturnOfNothing(callback)

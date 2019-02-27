@@ -58,7 +58,8 @@ from
    , Function callee
    , ConcreteControlFlowNode returnOfNothing
 where
-      call.getCallee() = calleeRef
+      not call.getTopLevel().isMinified()
+  and call.getCallee() = calleeRef
   and calleeRef.getReferent() = callee
   and getAReturnOfNothing(callee) = returnOfNothing
   and not isValidCallOfNoReturnFunction(call, callee)
