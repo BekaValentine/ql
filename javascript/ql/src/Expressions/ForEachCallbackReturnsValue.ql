@@ -25,6 +25,7 @@ where
   and callback.getAReturnedExpr() = returnVal
 select
        application
-     , callbackRef
-     , callback
-     , returnVal
+     , "This method application has the callback argument $@, which is expected to not return any values, but its definitions is $@, which returns the value $@"
+     , callbackRef, callbackRef.toString()
+     , callback, callback.toString()
+     , returnVal, returnVal.toString()

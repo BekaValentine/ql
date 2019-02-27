@@ -64,7 +64,7 @@ where
   and not isValidCallOfNoReturnFunction(call, callee)
 select
        call
-     , calleeRef
-     , callee
-     , callee.getBody()
-     , returnOfNothing
+     , "This function application is used in a context where its value matters, and it calls $@, which is defined as $@, but this can return nothing by executing this last: $@"
+     , calleeRef, calleeRef.toString()
+     , callee, callee.toString()
+     , returnOfNothing, returnOfNothing.toString()

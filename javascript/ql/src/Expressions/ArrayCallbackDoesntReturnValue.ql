@@ -25,7 +25,7 @@ where
   and returnOfNothing = getAReturnOfNothing(callback)
 select
        application
-     , application.getApplicationMethodName()
-     , callbackRef
-     , callback
-     , returnOfNothing
+     , "This method application calls the method `" + application.getApplicationMethodName() + "` which expects its callback to return a value, and has the callback argument $@, which is defined as $@, but this definition can return nothing by executing this last: $@"
+     , callbackRef, callbackRef.toString()
+     , callback, callback.toString()
+     , returnOfNothing, returnOfNothing.toString()
