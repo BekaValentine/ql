@@ -26,12 +26,14 @@ import semmle.javascript.CFG
  * - When the application is in a void expression
  */
 
-predicate isValidCallOfNoReturnFunction(CallExpr call, Function f) {
-  isInExprStmt(call)
-  or
+predicate canBeUsedWithNoReturnValue(Function f) {
   isEmpty(f)
   or
   isErrorFunction(f)
+}
+ 
+predicate isValidCallOfNoReturnFunction(CallExpr call) {
+  isInExprStmt(call)
   or
   isIife(call)
   or
@@ -61,9 +63,10 @@ where
       not call.getTopLevel().isMinified()
   and call.getCallee() = calleeRef
   and calleeRef.getReferent() = callee
+  and not isValidCallOfNoReturnFunction(call)
+  and not canBeUsedWithNoReturnValue(callee)
   and getAReturnOfNothing(callee) = returnOfNothing
-  and not isValidCallOfNoReturnFunction(call, callee)
-select
+select 
        call
      , "This function application is used in a context where its value matters, and it calls $@, which is defined as $@, but this can return nothing by executing this last: $@"
      , calleeRef, calleeRef.toString()
