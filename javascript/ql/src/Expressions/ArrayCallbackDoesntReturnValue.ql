@@ -1,4 +1,4 @@
-/*
+/**
  * @name Array Callback Doesn't Return Value
  * @description Array callbacks like `map` and `filter` expect a value to be returned, so code
  *              should never omit a return value in any execution path.

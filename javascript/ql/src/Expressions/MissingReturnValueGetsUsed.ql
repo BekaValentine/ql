@@ -1,4 +1,4 @@
-/*
+/**
  * @name Missing Return Value Gets Used
  * @description A call to a function that doesn't return a value is used in a context where the
  *              value of the call actually matters.
