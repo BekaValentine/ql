@@ -11,11 +11,13 @@ import javascript
 import semmle.javascript.CFG
 
 ConcreteControlFlowNode getAReturnOfNothing(Function f) {
+  not (f instanceof ArrowFunctionExpr and f.getBody() instanceof Expr)
+  and
   exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
     (
       final instanceof ReturnStmt and not exists(final.(ReturnStmt).getExpr())
       or
-      final instanceof Expr and not final = f.getAReturnedExpr()
+      final instanceof Expr
       or
       not final instanceof ReturnStmt and not final instanceof Expr
     ) and
