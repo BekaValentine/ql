@@ -1,4 +1,4 @@
-/*
+/**
  * @name ForEach Callback Returns Value
  * @description The `forEach` method's callback should not return a value because `forEach`
  *              discards them.
