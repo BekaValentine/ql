@@ -5,6 +5,16 @@
 <qhelp>
 	
 	<overview>
+	    
+	    
+	    <!-- What is the English description of the problem to analyze? -->
+	    <p>
+		    Problem Structures: An array method which requires a callback that returns a value, is called using a
+		    callback that does not return a value.
+	    </p>
+	    
+	    
+	    <!-- What is the reason this is a problem that deserves a query? -->
 		<p>
 			Many array methods, such as <code>map</code> and <code>filter</code>, take callback
 			arguments which are expected to return values.
@@ -20,8 +30,25 @@
 			Where side effects are concerned, <code>map</code> and <code>forEach</code> are
 			identical, so such confusion is understandable. 
 		</p>
+		
+		
+		<!-- What are the main concepts and potentially relevant libraries? -->
+        <ul>
+          <li>
+            Methods and Calls: function utils (to be able to reference the method by name,
+            independent of how it's called, whether its directly called or called via
+            <code>call</code> or <code>apply</code>)
+          </li>
+          <li>Callbacks: referring expressions / data flow (for indirect reference to callbacks)</li>
+          <li>Return Values: function utils / control flow (for finding returns)</li>
+        </ul>
+        
+        
 	</overview>
 	
+	
+	
+	<!-- When someone finds occurrences of this problem, how can it be fixed? -->
 	<recommendation>
 		<p>
 			Replace the empty returns with a value return, or possibly replace the method with
@@ -29,6 +56,75 @@
 		</p>
 	</recommendation>
 	
+	
+	
+	<!-- What are some test case examples? Positive and Negative cases -->
+    <source language="javascript">/////////////////
+//             //
+//  POSITIVES  //
+//             //
+/////////////////
+
+
+// Application w/ a directly referenced callback
+
+[].map(function (x) { return; });
+Array.prototype.map.apply([], [function (x) { return; }]);
+Array.prototype.map.call([], function (x) { return; });
+
+[].map(x => { return; });
+Array.prototype.map.apply([], [x => { return; }]);
+Array.prototype.map.call([], x => { return; });
+
+
+// Application w/ an indirectly referenced callback
+
+var f0 = function(x) { return; };
+[].map(f0);
+Array.prototype.map.apply([], [f0]);
+Array.prototype.map.call([], f0);
+
+var f1 = x => { return; };
+[].map(f1);
+Array.prototype.map.apply([], [f1]);
+Array.prototype.map.call([], f1);
+
+
+
+
+/////////////////
+//             //
+//  NEGATIVES  //
+//             //
+/////////////////
+
+
+// Application w/ a directly referenced callback
+
+[].map(function (x) { return 1; });
+Array.prototype.map.apply([], [function (x) { return 1; }]);
+Array.prototype.map.call([], function (x) { return 1; });
+
+[].map(x => 1);
+Array.prototype.map.apply([], [x => 1]);
+Array.prototype.map.call([], x => 1);
+
+
+// Application w/ an indirectly referenced callback
+
+var f2 = function(x) { return 1; };
+[].map(f2);
+Array.prototype.map.apply([], [f2]);
+Array.prototype.map.call([], f2);
+
+var f3 = x => 1;
+[].map(f3);
+Array.prototype.map.apply([], [f3]);
+Array.prototype.map.call([], f3);</source>
+    
+    
+    
+    <!-- What are some representative examples? Explain them and how they can be fixed. -->
 	<example>
 		
 		
@@ -67,6 +163,9 @@
 		</sample>
 	</example>
 	
+	
+	
+	<!-- What are some representative examples? Explain them and how they can be fixed. -->
 	<example>
 		<p>
 			Another common use for methods like <code>map</code> is to call some side effecting
@@ -100,7 +199,12 @@
 		</p>
 	</example>
 	
+	
+	
+	<!-- What are good places to go if people want to read more? -->
 	<references>
-		<li>DeepScan: <a href="https://deepscan.io/docs/rules/array-callback-return-missing">ARRAY_CALLBACK_RETURN_MISSING</a></li>
+		<ul>
+			<li>DeepScan: <a href="https://deepscan.io/docs/rules/array-callback-return-missing">ARRAY_CALLBACK_RETURN_MISSING</a></li>
+		</ul>
 	</references>
 </qhelp>

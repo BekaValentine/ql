@@ -13,6 +13,13 @@ import javascript
 import FunctionUtils
 import ReferringExpr
 
+/*
+ * We have a problem when there is a method application `application`, which
+ * is given a callback argument `callbackRef`, which refers to the callback
+ * function `callback` that can return nothing via the control flow node
+ * `returnOfNothing`.
+ */
+
 from
      MethodApplicationExpr application
    , ReferringExpr callbackRef

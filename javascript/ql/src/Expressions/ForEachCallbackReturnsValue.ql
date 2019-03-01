@@ -13,6 +13,13 @@ import javascript
 import FunctionUtils
 import ReferringExpr
 
+/*
+ * We have a problem when there is an application `application` that calls
+ * the `forEach` method, and is given a callback argument `callbackRef`,
+ * which refers to the callback function `callback`, which can return the
+ * expression `returnVal`.
+ */
+
 from
      MethodApplicationExpr application
    , ReferringExpr callbackRef

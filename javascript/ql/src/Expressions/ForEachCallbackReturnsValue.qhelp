@@ -5,6 +5,16 @@
 <qhelp>
 	
 	<overview>
+		
+		
+		<!-- What is the English description of the problem to analyze? -->
+		<p>
+			Problem Structures: The array method `forEach`, which expects a callback that returns no value, is
+			called using a callback that returns a value.
+		</p>
+		
+		
+		<!-- What is the reason this is a problem that deserves a query? -->
 		<p>
 			The <code>forEach</code> method on arrays is intended to be used as an alternative
 			to for loops, and as such, it behaves like an iterator where the callback is used
@@ -19,8 +29,25 @@
 			<code>forEach</code> and <code>map</code> are identical, so such confusion is
 			understandable. 
 		</p>
+		
+		
+		<!-- What are the main concepts and potentially relevant libraries? -->
+        <ul>
+          <li>
+            Methods and Calls: function utils (to be able to reference the method by name,
+            independent of how it's called, whether its directly called or called via
+            <code>call</code> or <code>apply</code>)
+          </li>
+          <li>Callbacks: referring expressions / data flow (for indirect reference to callbacks)</li>
+          <li>Return Values: function utils / control flow (for finding returns)</li>
+        </ul>
+        
+        
 	</overview>
 	
+	
+	
+	<!-- When someone finds occurrences of this problem, how can it be fixed? -->
 	<recommendation>
 		<p>
 			Replace the return with a variable assignment, or use a different array method
@@ -28,6 +55,74 @@
 		</p>
 	</recommendation>
 	
+	
+	
+	<!-- What are some test case examples? Positive and Negative cases -->
+	<source language="javascript">///////////////
+//             //
+//  BAD CASES  //
+//             //
+/////////////////
+
+
+// Application w/ directly referenced functions
+
+[].forEach(function (x) { return 1; });
+Array.prototype.forEach.apply([], [function (x) { return 1; }]);
+Array.prototype.forEach.call([], function (x) { return 1; });
+
+[].forEach(x => 1);
+Array.prototype.forEach.apply([], [x => 1]);
+Array.prototype.forEach.call([], x => 1);
+
+
+// Application w/ indirectly referenced functions
+
+var f0 = function (x) { return 1; };
+[].forEach(f0);
+Array.prototype.forEach.apply([], [f0]);
+Array.prototype.forEach.call([], f0);
+
+var f1 = x => 1;
+[].forEach(f1);
+Array.prototype.forEach.apply([], [f1]);
+Array.prototype.forEach.call([], f1);
+
+
+
+
+//////////////////
+//              //
+//  GOOD CASES  //
+//              //
+//////////////////
+
+//Application w/ directly referenced functions
+
+[].forEach(function (x) { return; });
+Array.prototype.forEach.apply([], [function (x) { return; }]);
+Array.prototype.forEach.call([], function (x) { return; });
+
+[].forEach(x => { return; });
+Array.prototype.forEach.apply([], [x => { return; }]);
+Array.prototype.forEach.call([], x => { return; });
+
+
+// Application w/ indirectly referenced functions
+
+var f2 = function (x) { return; };
+[].forEach(f2);
+Array.prototype.forEach.apply([], [f2]);
+Array.prototype.forEach.call([], f2);
+
+var f3 = x => { return; };
+[].forEach(f3);
+Array.prototype.forEach.apply([], [f3]);
+Array.prototype.forEach.call([], f3);</source>
+	
+	
+	
+	<!-- What are some representative examples? Explain them and how they can be fixed. -->
 	<example>
 		
 		
@@ -167,6 +262,9 @@
 		</p>
 	</example>
 	
+	
+	
+	<!-- What are good places to go if people want to read more? -->
 	<references>
 		<li>DeepScan: <a href="https://deepscan.io/docs/rules/bad-return-in-foreach">BAD_RETURN_IN_FOREACH</a></li>
 	</references>

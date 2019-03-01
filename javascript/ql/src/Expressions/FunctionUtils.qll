@@ -1,4 +1,4 @@
-/*
+/**
  * This library provides tools for referencing functions in various ways related more
  * to the logical concept of a function rather than the syntactic one. For example,
  * variables which are bound to functions ought to behave the same as the function
@@ -10,22 +10,30 @@
 import javascript
 import semmle.javascript.CFG
 
+/**
+ * A return of nothing is an expression or statement in the body of a function, which
+ * can be executed last, and which does not result in a value being returned.
+ * 
+ * If the body of an arrow function expression is itself an expression, then the
+ * function has no returns of nothing, so we must only consider cases other tha this.
+ * 
+ * For every other kind of function, we need an explicit return statement with an
+ * expression argument in order to return a value. So any node which is last to execute
+ * which is NOT a return with an expression must be a return of nothing.
+ */
+
 ConcreteControlFlowNode getAReturnOfNothing(Function f) {
   not (f instanceof ArrowFunctionExpr and f.getBody() instanceof Expr)
   and
   exists(ConcreteControlFlowNode final | final.getContainer() = f and final.isAFinalNode() |
     (
-      final instanceof ReturnStmt and not exists(final.(ReturnStmt).getExpr())
-      or
-      final instanceof Expr
-      or
-      not final instanceof ReturnStmt and not final instanceof Expr
+      not (final instanceof ReturnStmt and exists(final.(ReturnStmt).getExpr()))
     ) and
     result = final
   )
 }
 
-/*
+/**
  * A function can return nothing if it's a function expression with an empty return, or
  * a non-return final expression, or alternatively if its an arrow function with an empty
  * return.
@@ -33,7 +41,7 @@ ConcreteControlFlowNode getAReturnOfNothing(Function f) {
 
 predicate canReturnNothing(Function f) { exists(getAReturnOfNothing(f)) }
 
-/*
+/**
  * A `MethodApplicationExpr` is a minor abstraction over method calls which we use
  * to refer to method applications independent of whether they happen directly, via
  * `foo.bar()` syntax, or indirectly via `apply` or `call`. Because of this, the method
@@ -43,7 +51,7 @@ predicate canReturnNothing(Function f) { exists(getAReturnOfNothing(f)) }
 abstract class MethodApplicationExpr extends MethodCallExpr {
   Expr argument;
 
-  /*
+  /**
    * The application method name is just the name of the method being applied, once we
    * look at it through this lens of abstraction. So for example, in `foo.bar()`,
    * `C.prototype.bar.apply(foo, [])`, and `C.prototype.bar.call(foo)`, the application
@@ -52,7 +60,7 @@ abstract class MethodApplicationExpr extends MethodCallExpr {
 
   abstract string getApplicationMethodName();
 
-  /*
+  /**
    * The application arguments are just the arguments of the method, once we look at
    * them through this lens of abstraction. So for example, in `foo.bar(x,y,z)`,
    * `C.prototype.bar.apply(foo, [x,y,z])`, and `C.prototype.bar.call(foo, x, y, z)`,
@@ -62,7 +70,7 @@ abstract class MethodApplicationExpr extends MethodCallExpr {
   Expr getAnApplicationArgument() { result = argument }
 }
 
-/*
+/**
  * A `DirectMethodApplicationExpr` is any method application where the method is not
  * `apply` or `call` and is thus the method being applied to its arguments.
  */
@@ -77,7 +85,7 @@ class DirectMethodApplicationExpr extends MethodApplicationExpr {
   override string getApplicationMethodName() { result = this.getMethodName() }
 }
 
-/*
+/**
  * An `ApplyMethodApplicationExpr` is a method application that happens via the method's
  * `apply` method.
  */
@@ -93,7 +101,7 @@ class ApplyMethodApplicationExpr extends MethodApplicationExpr {
   }
 }
 
-/*
+/**
  * A `CallMethodApplicationExpr` is a method application that happens via the method's
  * `call` method.
  */
@@ -109,7 +117,7 @@ class CallMethodApplicationExpr extends MethodApplicationExpr {
   }
 }
 
-/*
+/**
  * An array callback method name is just the name of those array methods which take
  * callbacks that return values (as opposed to ones that don'e return values, i.e.
  * `forEach`).

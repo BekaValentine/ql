@@ -13,25 +13,37 @@ import javascript
 import FunctionUtils
 import ReferringExpr
 import semmle.javascript.CFG
-
-/*
- * A function with no return value can be called in a variety of places without it being bad.
- * Amongst them are...
- *
- * - As a statement, b/c the function is used for its side effects only
+ 
+/**
+ * A function with no return value can be called without being problematic under the following
+ * conditions on the internal properties of the function:
+ * 
  * - When the function is completely empty and has no statements in it
  * - When the function is in an error function (TODO)
- * - In an immediately invoked function expression (IIFE)
- * - When the application is immediately returned
- * - When the application is in a void expression
  */
-
+  
 predicate canBeUsedWithNoReturnValue(Function f) {
   isEmpty(f)
   or
   isErrorFunction(f)
 }
- 
+
+predicate isEmpty(Function f) { 0 = f.getNumBodyStmt() }
+
+predicate isErrorFunction(Function f) { none() }
+
+
+
+/**
+ * A function with no return value can be called without being problematic under the following
+ * conditions on the external properties of the context of the function call:
+ * 
+ * - As a statement, b/c the function is used for its side effects only
+ * - In an immediately invoked function expression (IIFE)
+ * - When the application is immediately returned
+ * - When the application is in a void expression
+ */
+
 predicate isValidCallOfNoReturnFunction(CallExpr call) {
   isInExprStmt(call)
   or
@@ -42,10 +54,6 @@ predicate isValidCallOfNoReturnFunction(CallExpr call) {
   isInVoidExpr(call)
 }
 
-predicate isEmpty(Function f) { 0 = f.getNumBodyStmt() }
-
-predicate isErrorFunction(Function f) { none() }
-
 predicate isInExprStmt(CallExpr call) { call.getParent() instanceof ExprStmt }
 
 predicate isIife(CallExpr call) { call.getCallee().stripParens() instanceof Function }
@@ -53,6 +61,14 @@ predicate isIife(CallExpr call) { call.getCallee().stripParens() instanceof Func
 predicate isInReturnExpr(Expr call) { call.getParent() instanceof ReturnStmt }
 
 predicate isInVoidExpr(Expr call) { call.getParent() instanceof VoidExpr }
+
+
+/*
+ * We have a problem when we have a function call `call`, which calls `calleeRef`,
+ * which refers to the function `callee`, which itself can return nothing, but
+ * `call` is neither one of the designated functions that are permitted to return
+ * nothing, nor is it in a position that allows it to return nothing.
+ */
 
 from
      CallExpr call
@@ -66,7 +82,7 @@ where
   and not isValidCallOfNoReturnFunction(call)
   and not canBeUsedWithNoReturnValue(callee)
   and getAReturnOfNothing(callee) = returnOfNothing
-select 
+select
        call
      , "This function application is used in a context where its value matters, and it calls $@, which is defined as $@, but this can return nothing by executing this last: $@"
      , calleeRef, calleeRef.toString()
