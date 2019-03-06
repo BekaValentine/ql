@@ -10,8 +10,27 @@
  */
 
 import javascript
+import semmle.javascript.dataflow.Nodes
 import FunctionUtils
-import ReferringExpr
+
+/**
+ * An array callback method name is just the name of those array methods which take
+ * callbacks that return values (as opposed to ones that don'e return values, i.e.
+ * `forEach`).
+ */
+
+predicate isArrayCallbackMethodName(string n) {
+  n = "from" or
+  n = "every" or
+  n = "filter" or
+  n = "find" or
+  n = "findIndex" or
+  n = "map" or
+  n = "reduce" or
+  n = "reduceRight" or
+  n = "some" or
+  n = "sort"
+}
 
 /*
  * We have a problem when there is a method application `application`, which
@@ -21,19 +40,21 @@ import ReferringExpr
  */
 
 from
-     MethodApplicationExpr application
-   , ReferringExpr callbackRef
+     CallNode application
+   , string methodName
+   , Expr callbackRef
    , Function callback
-   , ConcreteControlFlowNode returnOfNothing
+   , ConcreteControlFlowNode undefinedReturn
 where
       not application.getTopLevel().isMinified()
-  and isArrayCallbackMethodName(application.getApplicationMethodName())
-  and application.getAnApplicationArgument() = callbackRef
-  and callbackRef.getReferent() = callback
-  and returnOfNothing = getAReturnOfNothing(callback)
+  and isArrayCallbackMethodName(methodName)
+  and methodName = application.getCalleeNode().asExpr().(PropAccess).getPropertyName()
+  and callbackRef = application.getAnArgument().asExpr()
+  and exists(DataFlow::SourceNode src | src.flowsToExpr(callbackRef) | callback = src.getAstNode()) //callbackRef refers to callback
+  and undefinedReturn = getAnUndefinedReturn(callback)
 select
        application
-     , "This method application calls the method `" + application.getApplicationMethodName() + "` which expects its callback to return a value, and has the callback argument $@, which is defined as $@, but this definition can return nothing by executing this last: $@"
+     , "This method application calls the method `" + methodName + "` which expects its callback to return a value, and has the callback argument $@, which is defined as $@, but this definition can return nothing by executing this last: $@"
      , callbackRef, callbackRef.toString()
      , callback, callback.toString()
-     , returnOfNothing, returnOfNothing.toString()
+     , undefinedReturn, undefinedReturn.toString()
