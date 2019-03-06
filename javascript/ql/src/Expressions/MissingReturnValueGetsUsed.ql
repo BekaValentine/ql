@@ -10,9 +10,8 @@
  */
 
 import javascript
-import FunctionUtils
-import ReferringExpr
 import semmle.javascript.CFG
+import FunctionUtils
  
 /**
  * A function with no return value can be called without being problematic under the following
@@ -72,19 +71,19 @@ predicate isInVoidExpr(Expr call) { call.getParent() instanceof VoidExpr }
 
 from
      CallExpr call
-   , ReferringExpr calleeRef
+   , Expr calleeRef
    , Function callee
-   , ConcreteControlFlowNode returnOfNothing
+   , ConcreteControlFlowNode undefinedReturn
 where
       not call.getTopLevel().isMinified()
   and call.getCallee() = calleeRef
-  and calleeRef.getReferent() = callee
+  and exists(DataFlow::SourceNode src | src.flowsToExpr(calleeRef) | callee = src.getAstNode()) //calleeRef refers to callee
   and not isValidCallOfNoReturnFunction(call)
   and not canBeUsedWithNoReturnValue(callee)
-  and getAReturnOfNothing(callee) = returnOfNothing
+  and getAnUndefinedReturn(callee) = undefinedReturn
 select
        call
      , "This function application is used in a context where its value matters, and it calls $@, which is defined as $@, but this can return nothing by executing this last: $@"
      , calleeRef, calleeRef.toString()
      , callee, callee.toString()
-     , returnOfNothing, returnOfNothing.toString()
+     , undefinedReturn, undefinedReturn.toString()
