@@ -10,27 +10,19 @@
  */
 
 import javascript
-import FunctionUtils
-import ReferringExpr
-
-/*
- * We have a problem when there is an application `application` that calls
- * the `forEach` method, and is given a callback argument `callbackRef`,
- * which refers to the callback function `callback`, which can return the
- * expression `returnVal`.
- */
+import semmle.javascript.dataflow.Nodes
 
 from
-     MethodApplicationExpr application
-   , ReferringExpr callbackRef
+     CallNode application
+   , Expr callbackRef
    , Function callback
    , Expr returnVal
 where
       not application.getTopLevel().isMinified()
-  and application.getApplicationMethodName() = "forEach"
-  and application.getAnApplicationArgument() = callbackRef
-  and callbackRef.getReferent() = callback
-  and callback.getAReturnedExpr() = returnVal
+  and "forEach" = application.getCalleeNode().asExpr().(PropAccess).getPropertyName()
+  and callbackRef = application.getAnArgument().asExpr()
+  and exists(DataFlow::SourceNode src | src.flowsToExpr(callbackRef) | callback = src.getAstNode()) //callbackRef refers to callback
+  and returnVal = callback.getAReturnedExpr()
 select
        application
      , "This method application has the callback argument $@, which is expected to not return any values, but its definitions is $@, which returns the value $@"
