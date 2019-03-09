@@ -157,6 +157,26 @@ class Function extends @function, Parameterized, TypeParameterized, StmtContaine
     result = getBody() or
     result = getAReturnStmt().getExpr()
   }
+  
+  /**
+   * A return of nothing is an expression or statement in the body of a function, which
+   * can be executed last, and which does not result in a value being returned.
+   * 
+   * If the body of an arrow function expression is itself an expression, then the
+   * function has no returns of nothing, so we must only consider cases other than this.
+   * 
+   * For every other kind of function, we need an explicit return statement with an
+   * expression argument in order to return a value. So any node which is last to execute
+   * which is NOT a return with an expression must be a return of nothing.
+   */
+  
+  ConcreteControlFlowNode getAnUndefinedReturn(Function f) {
+    not (f instanceof ArrowFunctionExpr and f.getBody() instanceof Expr) and
+    result.getContainer() = f and
+    result.isAFinalNode() and
+    not (result instanceof ReturnStmt and exists(result.(ReturnStmt).getExpr())) and
+    not result instanceof ThrowStmt
+  }
 
   /**
    * Gets the function whose `this` binding a `this` expression in this function refers to,
