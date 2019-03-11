@@ -11,7 +11,6 @@
 
 import javascript
 import semmle.javascript.dataflow.Nodes
-import FunctionUtils
 
 /**
  * An array callback method name is just the name of those array methods which take
@@ -51,7 +50,7 @@ where
   and methodName = application.getCalleeNode().asExpr().(PropAccess).getPropertyName()
   and callbackRef = application.getAnArgument().asExpr()
   and exists(DataFlow::SourceNode src | src.flowsToExpr(callbackRef) | callback = src.getAstNode()) //callbackRef refers to callback
-  and undefinedReturn = getAnUndefinedReturn(callback)
+  and undefinedReturn = callback.getAnUndefinedReturn()
 select
        application
      , "This method application calls the method `" + methodName + "` which expects its callback to return a value, and has the callback argument $@, which is defined as $@, but this definition can return nothing by executing this last: $@"
