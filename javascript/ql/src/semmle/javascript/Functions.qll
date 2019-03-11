@@ -159,15 +159,28 @@ class Function extends @function, Parameterized, TypeParameterized, StmtContaine
   }
   
   /**
-   * A return of nothing is an expression or statement in the body of a function, which
-   * can be executed last, and which does not result in a value being returned.
    * 
-   * If the body of an arrow function expression is itself an expression, then the
-   * function has no returns of nothing, so we must only consider cases other than this.
+   * Functions can sometimes return without returning a value, in which case they
+   * "return" `undefined`. They can do this in two ways:
    * 
-   * For every other kind of function, we need an explicit return statement with an
-   * expression argument in order to return a value. So any node which is last to execute
-   * which is NOT a return with an expression must be a return of nothing.
+   * 1. An explicit return statement with no expression, i.e. the statement `return;`
+   * 
+   * 2. An implicit return resulting from an expression executing as the last thing
+   *    in the function. For example, the test in a final `if` statement:
+   * 
+   *    ```
+   *    function foo() {
+   *      ...
+   *      if (test) { return 1; }
+   *    }
+   *    ```
+   * 
+   * Some things look like they might return undefined but actually don't because
+   * the containing functioning doesn't return at all. For instance, `throw`
+   * statements prevent the containing function from returning, so they don't count
+   * as undefined returns. Similarly, `yield` doesn't actually cause a return,
+   * since the containing function is a generator and can be re-entered, so we also
+   * exclude yields entirely.
    */
   
   ConcreteControlFlowNode getAnUndefinedReturn() {
