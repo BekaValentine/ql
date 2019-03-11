@@ -14,6 +14,7 @@ import semmle.javascript.Concepts
 import semmle.javascript.Constants
 import semmle.javascript.DefUse
 import semmle.javascript.DOM
+import semmle.javascript.E4X
 import semmle.javascript.EmailClients
 import semmle.javascript.Errors
 import semmle.javascript.ES2015Modules
@@ -60,6 +61,7 @@ import semmle.javascript.frameworks.Azure
 import semmle.javascript.frameworks.Babel
 import semmle.javascript.frameworks.ComposedFunctions
 import semmle.javascript.frameworks.ClientRequests
+import semmle.javascript.frameworks.ClosureLibrary
 import semmle.javascript.frameworks.CookieLibraries
 import semmle.javascript.frameworks.Credentials
 import semmle.javascript.frameworks.CryptoLibraries
@@ -77,6 +79,7 @@ import semmle.javascript.frameworks.React
 import semmle.javascript.frameworks.ReactNative
 import semmle.javascript.frameworks.Request
 import semmle.javascript.frameworks.SQL
+import semmle.javascript.frameworks.SocketIO
 import semmle.javascript.frameworks.StringFormatters
 import semmle.javascript.frameworks.UriLibraries
 import semmle.javascript.frameworks.Vue

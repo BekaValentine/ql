@@ -244,7 +244,7 @@ module Ssa {
         def.getTarget() = lv and
         lv.isRef() and
         lv = v.getAssignable() and
-        def.getTargetAccess().getAControlFlowNode() = node and
+        node = def.getAControlFlowNode().getAPredecessor() and
         bb.getNode(i) = node
       )
     }
@@ -587,8 +587,11 @@ module Ssa {
      * (when `k` is `SsaDef()`).
      */
     private predicate ssaRef(BasicBlock bb, int i, SourceVariable v, SsaRefKind k) {
-      variableRead(bb, i, v, _, _) and
-      k = SsaRead()
+      exists(ReadKind rk |
+        variableRead(bb, i, v, _, rk) |
+        not rk instanceof RefReadBeforeWrite and
+        k = SsaRead()
+      )
       or
       exists(TrackedDefinition def | definesAt(def, bb, i, v)) and
       k = SsaDef()
@@ -670,7 +673,9 @@ module Ssa {
 
     /** Holds if `v` occurs in `bb` or one of `bb`'s transitive successors. */
     private predicate blockPrecedesVar(TrackedVar v, BasicBlock bb) {
-      varOccursInBlock(v, bb.getASuccessor*())
+      varOccursInBlock(v, bb)
+      or
+      blockPrecedesVar(v, bb.getASuccessor())
     }
 
     /**

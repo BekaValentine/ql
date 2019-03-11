@@ -176,6 +176,25 @@ private class AnalyzedNamespaceImport extends AnalyzedImport {
 }
 
 /**
+ * Flow analysis for namespace imports.
+ */
+private class AnalyzedDestructuredImport extends AnalyzedPropertyRead {
+  Module imported;
+
+  AnalyzedDestructuredImport() {
+    exists(ImportDeclaration id |
+      this = DataFlow::destructuredModuleImportNode(id) and
+      imported = id.getImportedModule()
+    )
+  }
+
+  override predicate reads(AbstractValue base, string propName) {
+    base = TAbstractModuleObject(imported) and
+    propName = "exports"
+  }
+}
+
+/**
  * Flow analysis for `require` calls, interpreted as an implicit read of
  * the `module.exports` property of the imported module.
  */
@@ -358,20 +377,20 @@ private class AnalyzedClosureExportAssign extends AnalyzedPropertyWrite, DataFlo
 private class AnalyzedClosureGlobalAccessPath extends AnalyzedNode, AnalyzedPropertyRead {
   string accessPath;
 
-  AnalyzedClosureGlobalAccessPath() { accessPath = Closure::getLibraryAccessPath(this) }
+  AnalyzedClosureGlobalAccessPath() {
+    accessPath = Closure::getClosureNamespaceFromSourceNode(this)
+  }
 
-  override AnalyzedNode localFlowPred() {
+  override AnalyzedNode globalFlowPred() {
     exists(DataFlow::PropWrite write |
-      Closure::getWrittenLibraryAccessPath(write) = accessPath and
+      Closure::getWrittenClosureNamespace(write) = accessPath and
       result = write.getRhs()
     )
-    or
-    result = AnalyzedNode.super.localFlowPred()
   }
 
   override predicate reads(AbstractValue base, string propName) {
     exists(Closure::ClosureModule mod |
-      mod.getNamespaceId() = accessPath and
+      mod.getClosureNamespace() = accessPath and
       base = TAbstractModuleObject(mod) and
       propName = "exports"
     )

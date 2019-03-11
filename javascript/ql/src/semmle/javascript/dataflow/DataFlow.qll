@@ -37,7 +37,11 @@ module DataFlow {
     TThisNode(StmtContainer f) { f.(Function).getThisBinder() = f or f instanceof TopLevel } or
     TUnusedParameterNode(SimpleParameter p) {
       not exists(SsaExplicitDefinition ssa | p = ssa.getDef())
-    }
+    } or
+    TDestructuredModuleImportNode(ImportDeclaration decl) {
+      exists(decl.getASpecifier().getImportedName())
+    } or
+    THtmlAttributeNode(HTML::Attribute attr)
 
   /**
    * A node in the data flow graph.
@@ -112,7 +116,9 @@ module DataFlow {
     int getIntValue() { result = asExpr().getIntValue() }
 
     /** Gets a function value that may reach this node. */
-    FunctionNode getAFunctionValue() { result.getAstNode() = analyze().getAValue().(AbstractCallable).getFunction() }
+    FunctionNode getAFunctionValue() {
+      result.getAstNode() = analyze().getAValue().(AbstractCallable).getFunction()
+    }
 
     /**
      * Holds if this expression may refer to the initial value of parameter `p`.
@@ -352,6 +358,25 @@ module DataFlow {
   }
 
   /**
+   * A node referring to the module imported at a named or default ES2015 import declaration.
+   */
+  private class DestructuredModuleImportNode extends Node, TDestructuredModuleImportNode {
+    ImportDeclaration imprt;
+
+    DestructuredModuleImportNode() { this = TDestructuredModuleImportNode(imprt) }
+
+    override BasicBlock getBasicBlock() { result = imprt.getBasicBlock() }
+
+    override predicate hasLocationInfo(
+      string filepath, int startline, int startcolumn, int endline, int endcolumn
+    ) {
+      imprt.getLocation().hasLocationInfo(filepath, startline, startcolumn, endline, endcolumn)
+    }
+
+    override string toString() { result = imprt.toString() }
+  }
+
+  /**
    * A data flow node that reads or writes an object property or class member.
    *
    * The default subclasses do not model global variable references or variable
@@ -558,7 +583,18 @@ module DataFlow {
 
     override string getPropertyName() { result = prop.getName() }
 
-    override Node getRhs() { result = parameterNode(prop.getParameter()) }
+    override Node getRhs() {
+      exists(Parameter param, Node paramNode |
+        param = prop.getParameter() and
+        parameterNode(paramNode, param)
+        |
+        result = paramNode
+        or
+        // special case: there is no SSA flow step for unused parameters
+        paramNode instanceof UnusedParameterNode and
+        result = param.getDefault().flow()
+      )
+    }
 
     override ControlFlowNode getWriteNode() { result = prop.getParameter() }
   }
@@ -669,6 +705,30 @@ module DataFlow {
   }
 
   /**
+   * A named import specifier seen as a property read on the imported module.
+   */
+  private class ImportSpecifierAsPropRead extends PropRead {
+    ImportDeclaration imprt;
+
+    ImportSpecifier spec;
+
+    ImportSpecifierAsPropRead() {
+      spec = imprt.getASpecifier() and
+      exists(spec.getImportedName()) and
+      exists(SsaExplicitDefinition ssa |
+        ssa.getDef() = spec and
+        this = TSsaDefNode(ssa)
+      )
+    }
+
+    override Node getBase() { result = TDestructuredModuleImportNode(imprt) }
+
+    override Expr getPropertyNameExpr() { result = spec.getImported() }
+
+    override string getPropertyName() { result = spec.getImportedName() }
+  }
+
+  /**
    * A data flow node representing an unused parameter.
    *
    * This case exists to ensure all parameters have a corresponding data-flow node.
@@ -690,6 +750,26 @@ module DataFlow {
     ) {
       p.getLocation().hasLocationInfo(filepath, startline, startcolumn, endline, endcolumn)
     }
+  }
+
+  /**
+   * A data flow node representing an HTML attribute.
+   */
+  class HtmlAttributeNode extends DataFlow::Node, THtmlAttributeNode {
+    HTML::Attribute attr;
+
+    HtmlAttributeNode() { this = THtmlAttributeNode(attr) }
+
+    override string toString() { result = attr.toString() }
+
+    override predicate hasLocationInfo(
+      string filepath, int startline, int startcolumn, int endline, int endcolumn
+    ) {
+      attr.getLocation().hasLocationInfo(filepath, startline, startcolumn, endline, endcolumn)
+    }
+
+    /** Gets the attribute corresponding to this data flow node. */
+    HTML::Attribute getAttribute() { result = attr }
   }
 
   /**
@@ -887,6 +967,16 @@ module DataFlow {
   DataFlow::ThisNode thisNode(StmtContainer container) { result = TThisNode(container) }
 
   /**
+   * INTERNAL. DO NOT USE.
+   *
+   * Gets the data flow node holding the reference to the module being destructured at
+   * the given import declaration.
+   */
+  DataFlow::Node destructuredModuleImportNode(ImportDeclaration imprt) {
+    result = TDestructuredModuleImportNode(imprt)
+  }
+
+  /**
    * A classification of flows that are not modeled, or only modeled incompletely, by
    * `DataFlowNode`:
    *
@@ -929,7 +1019,7 @@ module DataFlow {
   }
 
   /**
-   * Holds if data can flow from `node1` to `node2` in one local step.
+   * Holds if data can flow from `pred` to `succ` in one local step.
    */
   cached
   predicate localFlowStep(Node pred, Node succ) {
@@ -1000,6 +1090,16 @@ module DataFlow {
   }
 
   /**
+   * Holds if there is a step from `pred` to `succ` through a field accessed through `this` in a class.
+   */
+  predicate localFieldStep(DataFlow::Node pred, DataFlow::Node succ) {
+    exists (ClassNode cls, string prop |
+      pred = cls.getAReceiverNode().getAPropertyWrite(prop).getRhs() and
+      succ = cls.getAReceiverNode().getAPropertyRead(prop)
+    )
+  }
+
+  /**
    * Gets the data flow node representing the source of definition `def`, taking
    * flow through IIFE calls into account.
    */
@@ -1057,7 +1157,7 @@ module DataFlow {
     or
     exists(GlobalVarAccess va |
       nd = valueNode(va.(VarUse)) and
-      if Closure::isLibraryNamespacePath(va.getName()) then cause = "heap" else cause = "global"
+      if Closure::isClosureNamespace(va.getName()) then cause = "heap" else cause = "global"
     )
     or
     exists(Expr e | e = nd.asExpr() and cause = "call" |
@@ -1078,8 +1178,14 @@ module DataFlow {
     nd.asExpr() instanceof ExternalModuleReference and
     cause = "import"
     or
-    nd.asExpr() instanceof PropAccess and
-    cause = "heap"
+    exists(Expr e | e = nd.asExpr() and cause = "heap" |
+      e instanceof PropAccess or
+      e instanceof E4X::XMLAnyName or
+      e instanceof E4X::XMLAttributeSelector or
+      e instanceof E4X::XMLDotDotExpression or
+      e instanceof E4X::XMLFilterExpression or
+      e instanceof E4X::XMLQualifiedIdentifier
+    )
     or
     exists(Expr e | e = nd.asExpr() |
       (e instanceof YieldExpr or e instanceof FunctionSentExpr) and
