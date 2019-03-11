@@ -170,12 +170,13 @@ class Function extends @function, Parameterized, TypeParameterized, StmtContaine
    * which is NOT a return with an expression must be a return of nothing.
    */
   
-  ConcreteControlFlowNode getAnUndefinedReturn(Function f) {
-    not (f instanceof ArrowFunctionExpr and f.getBody() instanceof Expr) and
-    result.getContainer() = f and
+  ConcreteControlFlowNode getAnUndefinedReturn() {
+    not (this instanceof ArrowFunctionExpr and this.getBody() instanceof Expr) and
+    result.getContainer() = this and
     result.isAFinalNode() and
     not (result instanceof ReturnStmt and exists(result.(ReturnStmt).getExpr())) and
-    not result instanceof ThrowStmt
+    not result instanceof ThrowStmt and
+    not result instanceof YieldExpr
   }
 
   /**
