@@ -33,7 +33,9 @@ predicate benignContext(Expr e) {
   inVoidContext(e) or 
   
   // A return statement is often used to just end the function.
-  e = any(Function f).getAReturnedExpr()
+  e = any(Function f).getBody()
+  or
+  e = any(ReturnStmt r).getExpr()
   or 
   exists(ConditionalExpr cond | cond.getABranch() = e and benignContext(cond)) 
   or 
@@ -42,10 +44,9 @@ predicate benignContext(Expr e) {
   exists(Expr parent | parent.getUnderlyingValue() = e and benignContext(parent))
   or 
   any(VoidExpr voidExpr).getOperand() = e
-
   or
   // weeds out calls inside HTML-attributes.
-  e.getParent() instanceof CodeInAttribute or  
+  e.getParent().(ExprStmt).getParent() instanceof CodeInAttribute or
   // and JSX-attributes.
   e = any(JSXAttribute attr).getValue() or 
   
@@ -67,11 +68,11 @@ predicate benignContext(Expr e) {
   any(InvokeExpr invoke).getCallee() = e
   or
   // arguments to Promise.resolve (and promise library variants) are benign. 
-  e = any(ResolvedPromiseDefinition promise).getValue().asExpr()
+  e = any(PromiseCreationCall promise).getValue().asExpr()
 }
 
-predicate oneshotClosure(InvokeExpr call) {
-  call.getCallee().getUnderlyingValue() instanceof ImmediatelyInvokedFunctionExpr
+predicate oneshotClosure(DataFlow::CallNode call) {
+  call.getCalleeNode().asExpr().getUnderlyingValue() instanceof ImmediatelyInvokedFunctionExpr
 }
 
 predicate alwaysThrows(Function f) {
@@ -149,6 +150,12 @@ predicate voidArrayCallback(DataFlow::CallNode call, Function func) {
   )
 }
 
+predicate hasNonVoidReturnType(Function f) {
+  exists(TypeAnnotation type | type = f.getReturnTypeAnnotation() | 
+    not type.isVoid()
+  )
+}
+
 
 /**
  * Provides classes for working with various Deferred implementations. 
@@ -191,7 +198,7 @@ module Deferred {
   /**
    * A resolved promise created by a `new Deferred().resolve()` call.
    */
-  class ResolvedDeferredPromiseDefinition extends ResolvedPromiseDefinition {
+  class ResolvedDeferredPromiseDefinition extends PromiseCreationCall {
     ResolvedDeferredPromiseDefinition() {
       this = any(DeferredPromiseDefinition def).ref().getAMethodCall("resolve")
     }
@@ -211,9 +218,11 @@ where
     msg = "the $@ does not return anything, yet the return value from the call to " + call.getCalleeName() + " is used." and
     name = "callback function"
   ) and
-  not benignContext(call.asExpr()) and
+  not benignContext(call.getEnclosingExpr()) and
   not lastStatementHasNoEffect(func) and
   // anonymous one-shot closure. Those are used in weird ways and we ignore them.
-  not oneshotClosure(call.asExpr())
+  not oneshotClosure(call) and
+  not hasNonVoidReturnType(func) and
+  not call.getEnclosingExpr() instanceof SuperCall
 select
   call, msg, func, name

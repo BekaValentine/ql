@@ -94,12 +94,21 @@ module InstructionSanity {
   /**
    * Holds if instruction `instr` has multiple operands with tag `tag`.
    */
-  query predicate duplicateOperand(Instruction instr, OperandTag tag) {
-    strictcount(NonPhiOperand operand |
-      operand = instr.getAnOperand() and
-      operand.getOperandTag() = tag
-    ) > 1 and
-    not tag instanceof UnmodeledUseOperandTag
+  query predicate duplicateOperand(
+    Instruction instr, string message, IRFunction func, string funcText
+  ) {
+    exists(OperandTag tag, int operandCount |
+      operandCount = strictcount(NonPhiOperand operand |
+          operand = instr.getAnOperand() and
+          operand.getOperandTag() = tag
+        ) and
+      operandCount > 1 and
+      not tag instanceof UnmodeledUseOperandTag and
+      message = "Instruction has " + operandCount + " operands with tag '" + tag.toString() + "'" +
+          " in function '$@'." and
+      func = instr.getEnclosingIRFunction() and
+      funcText = Language::getIdentityString(func.getFunction())
+    )
   }
 
   /**
@@ -122,6 +131,16 @@ module InstructionSanity {
       message = "Operand '" + operand.toString() + "' of instruction '" + use.getOpcode().toString()
           + "' missing type in function '" + Language::getIdentityString(func) + "'."
     )
+  }
+
+  query predicate duplicateChiOperand(
+    ChiInstruction chi, string message, IRFunction func, string funcText
+  ) {
+    chi.getTotal() = chi.getPartial() and
+    message = "Chi instruction for " + chi.getPartial().toString() +
+        " has duplicate operands in function $@" and
+    func = chi.getEnclosingIRFunction() and
+    funcText = Language::getIdentityString(func.getFunction())
   }
 
   query predicate sideEffectWithoutPrimary(
@@ -808,14 +827,12 @@ class FloatConstantInstruction extends ConstantInstruction {
   FloatConstantInstruction() { getResultType() instanceof Language::FloatingPointType }
 }
 
-class StringConstantInstruction extends Instruction {
-  Language::StringLiteral value;
+class StringConstantInstruction extends VariableInstruction {
+  override IRStringLiteral var;
 
-  StringConstantInstruction() { value = Construction::getInstructionStringLiteral(this) }
+  final override string getImmediateString() { result = Language::getStringLiteralText(getValue()) }
 
-  final override string getImmediateString() { result = Language::getStringLiteralText(value) }
-
-  final Language::StringLiteral getValue() { result = value }
+  final Language::StringLiteral getValue() { result = var.getLiteral() }
 }
 
 class BinaryInstruction extends Instruction {
@@ -983,14 +1000,22 @@ class InheritanceConversionInstruction extends UnaryInstruction {
  * to the address of a direct non-virtual base class.
  */
 class ConvertToBaseInstruction extends InheritanceConversionInstruction {
-  ConvertToBaseInstruction() { getOpcode() instanceof Opcode::ConvertToBase }
+  ConvertToBaseInstruction() { getOpcode() instanceof ConvertToBaseOpcode }
+}
+
+/**
+ * Represents an instruction that converts from the address of a derived class
+ * to the address of a direct non-virtual base class.
+ */
+class ConvertToNonVirtualBaseInstruction extends ConvertToBaseInstruction {
+  ConvertToNonVirtualBaseInstruction() { getOpcode() instanceof Opcode::ConvertToNonVirtualBase }
 }
 
 /**
  * Represents an instruction that converts from the address of a derived class
  * to the address of a virtual base class.
  */
-class ConvertToVirtualBaseInstruction extends InheritanceConversionInstruction {
+class ConvertToVirtualBaseInstruction extends ConvertToBaseInstruction {
   ConvertToVirtualBaseInstruction() { getOpcode() instanceof Opcode::ConvertToVirtualBase }
 }
 

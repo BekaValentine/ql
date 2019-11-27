@@ -111,7 +111,7 @@ module LocalFlow {
         or
         // An `=` expression, where the result of the expression is used
         e2 = any(AssignExpr ae |
-            ae.getParent() instanceof Expr and
+            ae.getParent() = any(ControlFlowElement cfe | not cfe instanceof ExprStmt) and
             e1 = ae.getRValue()
           ) and
         scope = e2 and
@@ -1307,7 +1307,7 @@ private predicate suppressUnusedType(DotNet::Type t) { any() }
  * Type-based pruning is disabled for now, so this is a stub implementation.
  */
 bindingset[t]
-DotNet::Type getErasedRepr(DotNet::Type t) {
+DataFlowType getErasedRepr(DotNet::Type t) {
   // stub implementation
   suppressUnusedType(t) and result instanceof ObjectType
 }

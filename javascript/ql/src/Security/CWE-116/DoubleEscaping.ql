@@ -16,32 +16,6 @@
 import javascript
 
 /**
- * Holds if `rl` is a simple constant, which is bound to the result of the predicate.
- *
- * For example, `/a/g` has string value `"a"` and `/abc/` has string value `"abc"`,
- * while `/ab?/` and `/a(?=b)/` do not have a string value.
- *
- * Flags are ignored, so `/a/i` is still considered to have string value `"a"`,
- * even though it also matches `"A"`.
- *
- * Note the somewhat subtle use of monotonic aggregate semantics, which makes the
- * `strictconcat` fail if one of the children of the root is not a constant (legacy
- * semantics would simply skip such children).
- */
-language[monotonicAggregates]
-string getStringValue(RegExpLiteral rl) {
-  exists(RegExpTerm root | root = rl.getRoot() |
-    result = root.(RegExpConstant).getValue()
-    or
-    result = strictconcat(RegExpTerm ch, int i |
-        ch = root.(RegExpSequence).getChild(i)
-      |
-        ch.(RegExpConstant).getValue() order by i
-      )
-  )
-}
-
-/**
  * Gets a predecessor of `nd` that is not an SSA phi node.
  */
 DataFlow::Node getASimplePredecessor(DataFlow::Node nd) {
@@ -67,23 +41,26 @@ predicate escapingScheme(string metachar, string regex) {
 }
 
 /**
- * A method call that performs string replacement.
+ * A call to `String.prototype.replace` that replaces all instances of a pattern.
  */
-abstract class Replacement extends DataFlow::Node {
-  /**
-   * Holds if this replacement replaces the string `input` with `output`.
-   */
-  abstract predicate replaces(string input, string output);
+class Replacement extends StringReplaceCall {
+  Replacement() {
+    isGlobal()
+  }
 
   /**
    * Gets the input of this replacement.
    */
-  abstract DataFlow::Node getInput();
+  DataFlow::Node getInput() {
+    result = this.getReceiver()
+  }
 
   /**
    * Gets the output of this replacement.
    */
-  abstract DataFlow::SourceNode getOutput();
+  DataFlow::SourceNode getOutput() {
+    result = this
+  }
 
   /**
    * Holds if this replacement escapes `char` using `metachar`.
@@ -116,12 +93,9 @@ abstract class Replacement extends DataFlow::Node {
   /**
    * Gets the previous replacement in this chain of replacements.
    */
-  Replacement getPreviousReplacement() { result.getOutput() = getASimplePredecessor*(getInput()) }
-
-  /**
-   * Gets the next replacement in this chain of replacements.
-   */
-  Replacement getNextReplacement() { this = result.getPreviousReplacement() }
+  Replacement getPreviousReplacement() {
+    result.getOutput() = getASimplePredecessor*(getInput())
+  }
 
   /**
    * Gets an earlier replacement in this chain of replacements that
@@ -150,93 +124,6 @@ abstract class Replacement extends DataFlow::Node {
       )
     )
   }
-}
-
-/**
- * A call to `String.prototype.replace` that replaces all instances of a pattern.
- */
-class GlobalStringReplacement extends Replacement, DataFlow::MethodCallNode {
-  RegExpLiteral pattern;
-
-  GlobalStringReplacement() {
-    this.getMethodName() = "replace" and
-    pattern.flow().(DataFlow::SourceNode).flowsTo(this.getArgument(0)) and
-    this.getNumArgument() = 2 and
-    pattern.isGlobal()
-  }
-
-  override predicate replaces(string input, string output) {
-    input = getStringValue(pattern) and
-    output = this.getArgument(1).getStringValue()
-    or
-    exists(DataFlow::FunctionNode replacer, DataFlow::PropRead pr, DataFlow::ObjectLiteralNode map |
-      replacer = getCallback(1) and
-      replacer.getParameter(0).flowsToExpr(pr.getPropertyNameExpr()) and
-      pr = map.getAPropertyRead() and
-      pr.flowsTo(replacer.getAReturn()) and
-      map.asExpr().(ObjectExpr).getPropertyByName(input).getInit().getStringValue() = output
-    )
-  }
-
-  override DataFlow::Node getInput() { result = this.getReceiver() }
-
-  override DataFlow::SourceNode getOutput() { result = this }
-}
-
-/**
- * A call to `JSON.stringify`, viewed as a string replacement.
- */
-class JsonStringifyReplacement extends Replacement, DataFlow::CallNode {
-  JsonStringifyReplacement() { this = DataFlow::globalVarRef("JSON").getAMemberCall("stringify") }
-
-  override predicate replaces(string input, string output) {
-    input = "\\" and output = "\\\\"
-    // the other replacements are not relevant for this query
-  }
-
-  override DataFlow::Node getInput() { result = this.getArgument(0) }
-
-  override DataFlow::SourceNode getOutput() { result = this }
-}
-
-/**
- * A call to `JSON.parse`, viewed as a string replacement.
- */
-class JsonParseReplacement extends Replacement {
-  JsonParserCall self;
-
-  JsonParseReplacement() { this = self }
-
-  override predicate replaces(string input, string output) {
-    input = "\\\\" and output = "\\"
-    // the other replacements are not relevant for this query
-  }
-
-  override DataFlow::Node getInput() { result = self.getInput() }
-
-  override DataFlow::SourceNode getOutput() { result = self.getOutput() }
-}
-
-/**
- * A string replacement wrapped in a utility function.
- */
-class WrappedReplacement extends Replacement, DataFlow::CallNode {
-  int i;
-
-  Replacement inner;
-
-  WrappedReplacement() {
-    exists(DataFlow::FunctionNode wrapped | wrapped.getFunction() = getACallee() |
-      wrapped.getParameter(i).flowsTo(inner.getPreviousReplacement*().getInput()) and
-      inner.getNextReplacement*().getOutput().flowsTo(wrapped.getAReturn())
-    )
-  }
-
-  override predicate replaces(string input, string output) { inner.replaces(input, output) }
-
-  override DataFlow::Node getInput() { result = getArgument(i) }
-
-  override DataFlow::SourceNode getOutput() { result = this }
 }
 
 from Replacement primary, Replacement supplementary, string message, string metachar
