@@ -4,11 +4,9 @@ import semmle.python.web.RateLimiters
 import semmle.python.web.django.General
 
 class DjangoModel extends ClassValue {
-
     DjangoModel() {
         Module::named("django.db.models").attr("Model") = this.getASuperType()
     }
-
 }
 
 class ModelSaveMethod extends CallableValue {
